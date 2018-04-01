@@ -36,9 +36,28 @@ data2 <-  as.data.frame(dbGetQuery(conn = db, "SELECT  DISTINCT *
                      JOIN demo ON (demo.id = pred.id)
                      JOIN outcome ON (outcome.id = pred.id))"))
 
+
+data2$gender <- ifelse(data2$gender == "F", 0, 1)
+data2 <- data.matrix(data)
+
 outcome2 <- dbGetQuery(conn = db, "SELECT * FROM outcome WHERE outcome.id IN 
                       (SELECT pred.id
                       FROM pred
                        JOIN demo ON (demo.id = pred.id)
                        JOIN outcome ON (outcome.id = pred.id))")[,2]
- 
+
+### greedy algorithm provided in class
+ga <- function(y, X, K=10) {
+  p <-  ncol(X)
+  b.ga <- rep(0, p)
+  for (i in 1:K) {
+    r <- y - X%*%b.ga 
+    sel <-  which.max(abs(t(r)%*%X))
+    b.ga[sel] <- b.ga[sel] + sum(r*X[,sel])/sum(X[,sel]^2) 
+  }
+  return(b.ga) 
+}
+
+ga(outcome2, data2)
+
+
